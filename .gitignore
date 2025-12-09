@@ -1,0 +1,27 @@
+# Zig build output
+zig-out/
+.zig-cache/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Zig test output
+test-output/
+
+# Temp
+*.swp
+*.swo
+*.tmp
+*.log
+
+# external lib
+*.o
+*.obj
+
+# Build inside lib
+libs/*.o
+libs/*.obj
+libs/*.so
+libs/*.dll
+libs/*.exe
