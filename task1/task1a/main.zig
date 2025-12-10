@@ -14,10 +14,9 @@ const Context = extern struct {
     r15: ?*u64,
 };
 
-// pub extern fn get_last_error_message(loc: [*c]Loc) void;
+// Import the C library functions
 pub extern fn get_context(c: [*c]Context) i32;
 pub extern fn set_context(c: [*c]Context) void;
-// pub extern fn swap_context(out: *Context, in: *Context) void;
 
 // set x to 0
 var x: i32 = 0;
