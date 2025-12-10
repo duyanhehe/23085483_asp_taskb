@@ -4,7 +4,7 @@ const std = @import("std");
 const builtin = @import("builtin");
 
 // Define the Context struct to match the C library
-const Context = extern struct {
+pub const Context = extern struct {
     rip: ?*u64,
     rsp: ?*u64,
     rbx: ?*u64,
@@ -22,13 +22,13 @@ extern fn set_context(c: [*c]Context) void;
 // second fiber context
 var c2: Context = undefined;
 // func goo
-fn goo() noreturn {
+pub fn goo() noreturn {
     std.debug.print("you entered goo\n", .{});
     std.process.exit(0);
 }
 
 // func foo
-fn foo() noreturn {
+pub fn foo() noreturn {
     std.debug.print("you called foo\n", .{});
     set_context(@ptrCast(&c2)); // switch fibers
     std.process.exit(1);

@@ -20,7 +20,7 @@ extern fn get_context(c: [*c]Context) i32;
 extern fn set_context(c: [*c]Context) void;
 
 // func foo
-fn foo() noreturn { //cannot return to main as they have different stack
+pub fn foo() noreturn { //cannot return to main as they have different stack
     // output "you called foo"
     std.debug.print("you called foo\n", .{});
     // call function exit
