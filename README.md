@@ -11,6 +11,8 @@ Executables produced:
 * `zig-out/bin/task1a`
 * `zig-out/bin/task1b`
 * `zig-out/bin/task1c`
+* `zig-out/bin/task2`
+* `zig-out/bin/task2test`
 
 ---
 
@@ -20,14 +22,15 @@ Executables produced:
 zig build run-task1a
 zig build run-task1b
 zig build run-task1c
+zig build run-task2
+zig build test-task2
 ```
 
 It includes:
 * Task 1a: Basic context capture + resume
 * Task 1b: Simple fiber with custom stack
 * Task 1c: Two fibers with stack alignment + red zone handling
-
-
+* Task 2: Cooperative Fiber Runtime
 
 ---
 
@@ -38,18 +41,9 @@ Each task has test files:
 * `task1a/test.zig`
 * `task1b/test.zig`
 * `task1c/test.zig`
-
-These tests validate:
-
-* Struct layout
-* Stack growth direction
-* Correct stack pointer arithmetic
-* 16-byte alignment
-* Red zone subtraction
-* Correct function pointers (`foo`, `goo`) are assigned
-
-The tests do *not* run actual fiber switching (because `set_context()` halts test execution), but instead simulate the logic safely.
-
+* `task2/test.zig`
+- For task 1, use testing function built in Zig file. 
+- For task 2, run `zig build test-task2`
 ---
 
 ## **Task 1**
@@ -67,7 +61,7 @@ a message
 - `set_context` makes the program resume as though `get_context` returned again, making it produce the output twice.
 
 ### Task 1b
-#### Expected output
+#### Expected Output
 ```
 you called foo
 ```
@@ -80,7 +74,7 @@ c.rsp = @ptrCast(@alignCast(sp));
 so control switches from `main -> foo`, this is the first actual fiber jump
 
 ### Task 1c
-#### Expected output
+#### Expected Output
 ```
 you called foo
 you entered goo
@@ -91,4 +85,6 @@ Switch 1: `main -> foo` at `set_context(&c);` \
 Switch 2: `foo -> goo` at `set_context(&c2);` \
 So the full flow is `main -> foo -> goo`
 
+### Task 2
+#### Expected Output
 

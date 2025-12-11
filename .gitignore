@@ -20,8 +20,8 @@ test-output/
 *.obj
 
 # Build inside lib
-libs/*.o
-libs/*.obj
-libs/*.so
-libs/*.dll
-libs/*.exe
+lib/*.o
+lib/*.obj
+lib/*.so
+lib/*.dll
+lib/*.exe
