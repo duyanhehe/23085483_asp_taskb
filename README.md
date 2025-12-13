@@ -1,4 +1,5 @@
 # **ASP Assignment – Task B**
+## Important: This assignment was done using Zig version 0.15.2
 
 ## **Build**
 
@@ -13,6 +14,8 @@ Executables produced:
 * `zig-out/bin/task1c`
 * `zig-out/bin/task2`
 * `zig-out/bin/task2test`
+* `zig-out/bin/task3`
+* `zig-out/bin/task3test`
 
 ---
 
@@ -24,35 +27,31 @@ zig build run-task1b
 zig build run-task1c
 zig build run-task2
 zig build test-task2
+zig build run-task3
+zig build test-task3
 ```
 
 It includes:
 * Task 1a: Basic context capture + resume
 * Task 1b: Simple fiber with custom stack
 * Task 1c: Two fibers with stack alignment + red zone handling
-* Task 2: Cooperative Fiber Runtime
+* Task 2: Cooperative Fiber Runtime + test file
+* Task 3: Cooperative Yielding between fibers + test file
 
 ---
 
 ## **Test**
 
-Each task has test files:
+Task 2 and 3 have test files:
+* `task2/test.zig`, use `zig build test-task2` to run test
+* `task3/test.zig`, use `zig build test-task3` to run test
 
-* `task1a/test.zig`
-* `task1b/test.zig`
-* `task1c/test.zig`
-* `task2/test.zig`
-- For task 1, use testing function built in Zig file. 
-- For task 2, run `zig build test-task2`
 ---
 
 ## **Task 1**
 ### Task 1a
 #### Expected output
-```
-a message
-a message
-```
+![Task 1a Output](img/task1a_output.png)
 #### Explanation
 
 - In task 1a, `get_context` saves the current CPU state, and `set_context` restores it. Both occur inside function `main`. 
@@ -62,40 +61,37 @@ a message
 
 ### Task 1b
 #### Expected Output
-```
-you called foo
-```
+![Task 1b Output](img/task1b_output.png)
 #### Explanation
 Switch happens at `set_context(&c);` where it is set as
-```
-c.rip = @ptrCast(@alignCast(@constCast(&foo)));
-c.rsp = @ptrCast(@alignCast(sp));
-```
+![Task 1b rip and rsp set](img/task1b_setRIPandRSP.png)
 so control switches from `main -> foo`, this is the first actual fiber jump
 
 ### Task 1c
 #### Expected Output
-```
-you called foo
-you entered goo
-```
+![Task 1c Output](img/task1c_output.png)
 #### Explanation
+The code in Task 1b might work, but it is just as likely to fail. For it to fully functional, we have to account for SysV ABI, in particular, the stack must be aligned to 16-bytes \
+![Task 1c 16 bytes](img/task1c_SysVABI16bytes.png) \
+SyS V have specific rules about the stack when calling functions. A 128 byte space is stored beneath stack pointer called Red zone must be accounted \
+![Task 1c Red Zone](img/task1c_SysVABIRedZone.png) \
 Two switches occur: \
 Switch 1: `main -> foo` at `set_context(&c);` \
 Switch 2: `foo -> goo` at `set_context(&c2);` \
-So the full flow is `main -> foo -> goo`
+So the full flow is `main -> foo -> goo` \
+Some interesting variants of using `set/get_context` would be:
+- `Ping-pong context switching`: Two fibers repeatedly transfer control back and forth by alternately saving their context and switching to the other fiber.
+- `Round-robin scheduler`: Multiple fibers are executed in turn by saving their contexts on yield and resuming them in a cyclic order managed by a scheduler.
+- `Bidirectional cooperative fibers`: Fibers explicitly save and restore their execution state using `get_context` and `set_context`, allowing them to yield and later resume execution cooperatively.
+
+---
 
 ### Task 2
 #### Expected Output
-Running `main.zig` by `zig build run-task2`
-```
-Foo is running
-```
-Running `test.zig` by `zig build test-task2`
-```
-fiber 1: 10
-fiber 2: 11
-```
+Running `main.zig` by `zig build run-task2` \
+![Task 2 Main Output](img/task2_outputMain.png) \
+Running `test.zig` by `zig build test-task2` \
+![Task 2 Main Test Output](img/task2_outputTest.png)
 
 #### Explanation
 Task 2 implements a lightweight cooperative fiber runtime in Zig. \
@@ -110,6 +106,8 @@ The runtime includes:
 - Sys V ABI-compliant stack alignment and red-zone handling
 - Passing data between fibers
 1. **Fiber Implementation** \
+Fiber Class UML: \
+![Task 2 Fiber](img/task2_fiberUML.png) \
 In this design, a fiber is defined by:
 - Its own stack
 - A context struct (`rip`, `rsp`, and other registers)
@@ -120,19 +118,15 @@ In this design, a fiber is defined by:
     3. Reserves 128 bytes red zone under the stack pointer
     4. Initializes the context so that `rip = func` and `rsp = aligned stack pointer` \
 - Stack setup summary:
-```
-// stack grows DOWNWARD
-var sp: usize = @intFromPtr(mem.ptr) + stack_size;
+![Task 2 Stack Setup](img/task2_stack.png)
 
-// align to 16 bytes
-sp = sp & ~(@as(usize, 16 - 1));
-
-// subtract 128 red-zone
-sp -= 128;
-```
 - Without these 2 adjustments, control transfer using `set_context` would crash unpredictably
 
 2. **Scheduler Design** \
+Scheduler visualized: \
+![Task 2 Scheduler Visualised](img/task2_schedulerVisual.png) \
+Scheduler UML: \
+![Task 2 Scheduler UML](img/task2_schedulerUML.png)
 The scheduler:
 - Manages a queue of pending fibers
 - Tracks the currently running fiber
@@ -151,23 +145,13 @@ The scheduler:
 
 4. **Example: Passing data between fibers** \
 Running `test.zig` by `zig build test-task2` demonstrates shared state mutation: \
-Expected Output
-```
-fiber 1: 10
-fiber 2: 11
-``` 
+Expected Output \
+![Task 2 Main Test Output](img/task2_outputTest.png) \
 Fiber 1 increments shared data (`dp.* += 1`) before exiting. \
 Fiber 2 observes the updated value. \
-The implementation is accomplished using
-```
-// RETURNS pointer passed to fiber OR null
-    pub fn get_data(self: *Scheduler) ?*i32 {
-        if (self.current_) |fiber| {
-            return fiber.data_;
-        }
-        return null;
-    }
-```
+The implementation is accomplished using \
+![Task 2 Get Data](img/task2getData.png) 
+
 
 5. **Notes**
 - Implementing stacked-based coroutines requires manual context management
@@ -175,3 +159,27 @@ The implementation is accomplished using
 - SysV ABI rules for stack alignment and red zone are non-optional
 - Global scheduler access is mandatory for fibers
 - Cooperative scheduling makes concurrency predictable and deterministic
+
+---
+
+### Task 3
+#### Expected Output
+Running `main.zig` by `zig build run-task3` \
+![Task 3 Main Output](img/task3_outputMain.png) \
+Running `test.zig` by `zig build test-task3` \
+![Task 3 Main Test Output](img/task3_outputTest.png)
+
+#### Explanation
+Task 3 adds the ability for a running fiber to **voluntarily suspend its execution** and return control to the scheduler before completion. This enables:
+
+- Interleaved execution of fibers within a single thread  
+- Cooperative multitasking without preemption  
+- Fine-grained control over scheduling points inside fiber code  
+
+This behavior is implemented through a new `yield()` function, which:
+1. Saves the current fiber’s execution context using `get_context`
+2. Re-enqueues the fiber at the back of the scheduler’s queue
+3. Restores the scheduler’s context using `set_context` 
+![Task 3 Yield](img/task3_yield.png) \
+When the yielding fiber is scheduled again, execution resumes **immediately after the call to `yield()`**, preserving its stack and register state. \
+Task 3 therefore transforms the scheduler from a **run-to-completion model** into a **fully cooperative fiber runtime**, closer to how coroutines and async/await systems behave internally.
