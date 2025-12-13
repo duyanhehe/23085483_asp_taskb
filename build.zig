@@ -4,6 +4,10 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
+    // =========================
+    // Task 1
+    // =========================
+
     // Create root module for task1a
     const module_task1a = b.addModule("task1a", .{
         .root_source_file = b.path("task1/task1a/main.zig"),
@@ -77,6 +81,10 @@ pub fn build(b: *std.Build) void {
     const run_task1c_step = b.step("run-task1c", "Run task1c");
     run_task1c_step.dependOn(&run_task1c.step);
 
+    // =========================
+    // Task 2
+    // =========================
+
     // Create root module for task2
     const module_task2 = b.addModule("task2", .{
         .root_source_file = b.path("task2/main.zig"),
@@ -125,4 +133,56 @@ pub fn build(b: *std.Build) void {
     const run_task2_test = b.addRunArtifact(exe_task2_test);
     const run_task2_test_step = b.step("test-task2", "Test task2");
     run_task2_test_step.dependOn(&run_task2_test.step);
+
+    // =========================
+    // Task 3
+    // =========================
+
+    // Create root module for task3
+    const module_task3 = b.addModule("task3", .{
+        .root_source_file = b.path("task3/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    // Create executable for task3
+    const exe_task3 = b.addExecutable(.{
+        .name = "task3",
+        .root_module = module_task3,
+    });
+
+    exe_task3.linkLibC();
+    exe_task3.addObjectFile(b.path("lib/libcontext.a"));
+    exe_task3.addIncludePath(b.path("lib"));
+
+    b.installArtifact(exe_task3);
+
+    // Create root module for task3 test
+    const module_task3_test = b.addModule("task3test", .{
+        .root_source_file = b.path("task3/test.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    // Create executable for task3 test
+    const exe_task3_test = b.addExecutable(.{
+        .name = "task3test",
+        .root_module = module_task3_test,
+    });
+
+    exe_task3_test.linkLibC();
+    exe_task3_test.addObjectFile(b.path("lib/libcontext.a"));
+    exe_task3_test.addIncludePath(b.path("lib"));
+
+    b.installArtifact(exe_task3_test);
+
+    // Run step for task3
+    const run_task3 = b.addRunArtifact(exe_task3);
+    const run_task3_step = b.step("run-task3", "Run task3");
+    run_task3_step.dependOn(&run_task3.step);
+
+    // Run step for task3 test
+    const run_task3_test = b.addRunArtifact(exe_task3_test);
+    const run_task3_test_step = b.step("test-task3", "Test task3");
+    run_task3_test_step.dependOn(&run_task3_test.step);
 }
