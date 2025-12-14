@@ -63,8 +63,8 @@ Task 2 and 3 have test files:
 #### Expected Output
 ![Task 1b Output](img/task1b_output.png)
 #### Explanation
-Switch happens at `set_context(&c);` where it is set as
-![Task 1b rip and rsp set](img/task1b_setRIPandRSP.png)
+Switch happens at `set_context(&c);` where it is set as \
+![Task 1b rip and rsp set](img/task1b_setRIPandRSP.png) \
 so control switches from `main -> foo`, this is the first actual fiber jump
 
 ### Task 1c
@@ -117,7 +117,7 @@ In this design, a fiber is defined by:
     2. Aligns the top of stack to 16 bytes (Sys V ABI)
     3. Reserves 128 bytes red zone under the stack pointer
     4. Initializes the context so that `rip = func` and `rsp = aligned stack pointer` \
-- Stack setup summary:
+- Stack setup summary: \
 ![Task 2 Stack Setup](img/task2_stack.png)
 
 - Without these 2 adjustments, control transfer using `set_context` would crash unpredictably
@@ -176,7 +176,8 @@ Task 3 adds the ability for a running fiber to **voluntarily suspend its executi
 - Cooperative multitasking without preemption  
 - Fine-grained control over scheduling points inside fiber code  
 
-This behavior is implemented through a new `yield()` function, which:
+This behavior is implemented through a new `yield()` function, which: \
+![Task 3 Yield](img/task3_yield.png) 
 1. Saves the current fiber’s execution context using `get_context`
 2. Re-enqueues the fiber at the back of the scheduler’s queue
 3. Restores the scheduler’s context using `set_context` 
