@@ -184,3 +184,10 @@ This behavior is implemented through a new `yield()` function, which: \
 ![Task 3 Yield](img/task3_yield.png) \
 When the yielding fiber is scheduled again, execution resumes **immediately after the call to `yield()`**, preserving its stack and register state. \
 Task 3 therefore transforms the scheduler from a **run-to-completion model** into a **fully cooperative fiber runtime**, closer to how coroutines and async/await systems behave internally.
+
+For yield to work, `do_it()` function also have to change to loop based scheduler \
+![Task 3 do_it](img/task3_doIt.png) 
+- The scheduler context is now saved once and conditionally using `if (get_context(...) == 0)` to distinguish between the initial entry and resuming from a fiber, instead of unconditionally saving it.
+- The function was changed from a **single-dispatch** design to a **loop-based scheduler**, allowing it to run all fibers sequentially rather than just the first one.
+- After returning from a fiber, the scheduler continues execution and schedules the next fiber instead of exiting the function.
+- `current_` is explicitly reset to `null` after each fiber completes, ensuring correct scheduler state between runs.
