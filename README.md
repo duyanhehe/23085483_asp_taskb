@@ -126,7 +126,7 @@ In this design, a fiber is defined by:
 Scheduler visualized: \
 ![Task 2 Scheduler Visualised](img/task2_schedulerVisual.png) \
 Scheduler UML: \
-![Task 2 Scheduler UML](img/task2_schedulerUML.png)
+![Task 2 Scheduler UML](img/task2_schedulerUML.png) \
 The scheduler:
 - Manages a queue of pending fibers
 - Tracks the currently running fiber
