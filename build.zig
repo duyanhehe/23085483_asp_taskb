@@ -106,34 +106,29 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe_task2);
 
     // Create root module for task2 test
-    const module_task2_test = b.addModule("task2test", .{
+    const module_task2_test = b.addModule("task2_test", .{
         .root_source_file = b.path("task2/test.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    // Create executable for task2 test
-    const exe_task2_test = b.addExecutable(.{
-        .name = "task2test",
+    // Create test artifact
+    const task2_tests = b.addTest(.{
         .root_module = module_task2_test,
     });
 
-    // Link with the context library
-    exe_task2_test.linkLibC();
-    exe_task2_test.addObjectFile(b.path("lib/libcontext.a"));
-    exe_task2_test.addIncludePath(b.path("lib"));
-
-    b.installArtifact(exe_task2_test);
+    task2_tests.linkLibC();
+    task2_tests.addObjectFile(b.path("lib/libcontext.a"));
+    task2_tests.addIncludePath(b.path("lib"));
 
     // Create run step for task2
     const run_task2 = b.addRunArtifact(exe_task2);
     const run_task2_step = b.step("run-task2", "Run task2");
     run_task2_step.dependOn(&run_task2.step);
 
-    const run_task2_test = b.addRunArtifact(exe_task2_test);
-    const run_task2_test_step = b.step("test-task2", "Test task2");
-    run_task2_test_step.dependOn(&run_task2_test.step);
-
+    const task2_test = b.addRunArtifact(task2_tests);
+    const task2_test_step = b.step("test-task2", "Run task2 tests and show output");
+    task2_test_step.dependOn(&task2_test.step);
     // =========================
     // Task 3
     // =========================
@@ -158,23 +153,20 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe_task3);
 
     // Create root module for task3 test
-    const module_task3_test = b.addModule("task3test", .{
+    const module_task3_test = b.addModule("task3_test", .{
         .root_source_file = b.path("task3/test.zig"),
         .target = target,
         .optimize = optimize,
     });
 
-    // Create executable for task3 test
-    const exe_task3_test = b.addExecutable(.{
-        .name = "task3test",
+    // Create test artifact
+    const task3_tests = b.addTest(.{
         .root_module = module_task3_test,
     });
 
-    exe_task3_test.linkLibC();
-    exe_task3_test.addObjectFile(b.path("lib/libcontext.a"));
-    exe_task3_test.addIncludePath(b.path("lib"));
-
-    b.installArtifact(exe_task3_test);
+    task3_tests.linkLibC();
+    task3_tests.addObjectFile(b.path("lib/libcontext.a"));
+    task3_tests.addIncludePath(b.path("lib"));
 
     // Run step for task3
     const run_task3 = b.addRunArtifact(exe_task3);
@@ -182,7 +174,7 @@ pub fn build(b: *std.Build) void {
     run_task3_step.dependOn(&run_task3.step);
 
     // Run step for task3 test
-    const run_task3_test = b.addRunArtifact(exe_task3_test);
-    const run_task3_test_step = b.step("test-task3", "Test task3");
-    run_task3_test_step.dependOn(&run_task3_test.step);
+    const task3_test = b.addRunArtifact(task3_tests);
+    const task3_test_step = b.step("test-task3", "Run task3 tests and show output");
+    task3_test_step.dependOn(&task3_test.step);
 }
